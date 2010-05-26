@@ -1,5 +1,5 @@
-blocks:	main.cpp
-	g++ main.cpp -o balls -g -lSDL -lSDL_image -lSDL_ttf -lSDL_mixer
+arkanoid:	main.cpp
+	g++ main.cpp -o arkanoid -g -lSDL -lSDL_image -lSDL_ttf
 
 release: main.cpp
-	g++ -o3 -march=pentium-mmx main.cpp -o balls -lSDL -lSDL_image -lSDL_ttf -lSDL_mixer
+	g++ -o3 -march=pentium-mmx main.cpp -o arkanoid -lSDL -lSDL_image -lSDL_ttf
