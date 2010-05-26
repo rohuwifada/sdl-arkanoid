@@ -53,6 +53,8 @@ double BallSpeedX;
 double BallSpeedY;
 Uint32 time1 = 0;
 Uint32 time2 = 0;
+double tmpTime1;
+double tmpTime2;
 double tmpY = 0;
 double tmpX = 0;
 
@@ -267,23 +269,20 @@ bool calculateMelaPosition(int x)
   if (x > 0 && x < 375 + 40)
     {
       SDL_ShowCursor(SDL_ENABLE);
-      //applySurface(375, 630, mela, screen);
       MelaX = 375 + 40;
-      return true;
+      return false;
     }
   else if (x >= 375 + 40 && x <= 375 + 520 - 40)
     {
       SDL_ShowCursor(SDL_ENABLE);
-      //applySurface(x - 40, 630, mela, screen);
       MelaX = x;
       return true;
     }
   else
     {
       SDL_ShowCursor(SDL_ENABLE);
-      //applySurface(375 + 520 - 80, 630, mela, screen);
       MelaX = 375 + 520 - 40;
-      return true;
+      return false;
     }
 
 }
@@ -314,20 +313,23 @@ void handleEvents()
 	      drawMela();
 	    }
 	}
-      
     }
 }
 
 bool calculateBallPosition()
 {
-  tmpY = (time2 - time1) / 1000 * BallSpeedY;
-  tmpX = (time2 - time1) / 1000 * BallSpeedX;
+  tmpTime1 = time1;
+  tmpTime2 = time2;
+  tmpY = (tmpTime2 - tmpTime1) / 1000 * BallSpeedY;
+  tmpX = (tmpTime2 - tmpTime1) / 1000 * BallSpeedX;
   if (BallSpeedY > 0)
     {
       if ((int)tmpY > (int)prevBallY)
 	{
 	  BallY = (int)tmpY - (int)prevBallY;
 	  prevBallY = BallY;
+	  time1 = time2;
+	  return true;
 	}
     }
   else
@@ -336,6 +338,8 @@ bool calculateBallPosition()
 	{
 	  BallY = (int)prevBallY - (int)tmpY;
 	  prevBallY = BallY;
+	  time1 = time2;
+	  return true;
 	}
     }
 
@@ -344,7 +348,7 @@ bool calculateBallPosition()
   //applySurface(375, 75, playArea, screen);
   //moveMela(MelaX);
   //SDL_Flip(screen);
-  return true;
+  return false;
 }
 
 void drawBall()
@@ -354,7 +358,7 @@ void drawBall()
 
 void drawMela()
 {
-  applySurface(MelaX - 80/2, 630, mela, screen);
+  applySurface((int)MelaX - 80/2, 630, mela, screen);
 }
 
 bool checkBallCollision()
@@ -377,19 +381,19 @@ void gameOn()
 {
 
   //Set initial values
-  BallSpeedX = 2;
-  BallSpeedY = 1;
+  BallSpeedX = 0;
+  BallSpeedY = 120;
   BallX = 520/2;
   BallY = 0;
   prevBallX = BallX;
   prevBallY = BallY;
-  MelaX = 520/2;
+  MelaX = 375 + 520/2;
 
 
   //Apply the background to the screen
   applySurface(0, 0, background, screen);
   applySurface(375, 75, playArea, screen);
-  applySurface(375 + MelaX - 80/2, 630, mela, screen);
+  applySurface((int)MelaX - 80/2, 630, mela, screen);
   //applySurface(375 + 520/2 - 10/2, 620, ball, screen);
   applySurface(375 + (int)BallX, 620 - (int)BallY, ball, screen);
   
@@ -412,13 +416,15 @@ void gameOn()
       time2 = myTimer.get_ticks();
       if (calculateBallPosition() == true)
 	{
+	  /*
 	  if (checkBallCollision() == true)
 	    {
 	
 	    }
+	  */
 	  applySurface(375, 75, playArea, screen);
 	  drawBall();
-	  drawMela();
+	  //drawMela();
 	  SDL_Flip(screen);
 	}
     } //quit == false && game_over == false
