@@ -8,6 +8,7 @@
 #include "SDL/SDL_ttf.h"
 //#include "SDL/SDL_mixer.h"
 #include "Timer.h"
+#include <iostream>
 
 #define SCREENMODE SDL_SWSURFACE
 #define SURFACETYPE SDL_SWSURFACE
@@ -322,33 +323,25 @@ bool calculateBallPosition()
   tmpTime2 = time2;
   tmpY = (tmpTime2 - tmpTime1) / 1000 * BallSpeedY;
   tmpX = (tmpTime2 - tmpTime1) / 1000 * BallSpeedX;
-  if (BallSpeedY > 0)
+  bool returnValue = false;
+
+  if ((int)tmpY >= 1 || (int)tmpY <= -1)
     {
-      if ((int)tmpY > (int)prevBallY)
-	{
-	  BallY = (int)tmpY - (int)prevBallY;
-	  prevBallY = BallY;
-	  time1 = time2;
-	  return true;
-	}
-    }
-  else
-    {
-      if ((int)tmpY < (int)prevBallY)
-	{
-	  BallY = (int)prevBallY - (int)tmpY;
-	  prevBallY = BallY;
-	  time1 = time2;
-	  return true;
-	}
+      BallY = BallY + (int)tmpY;
+      //std::cout << "BallY: ";
+      //std::cout << BallY << std::endl;
+      time1 = time2;
+      returnValue = true;
     }
 
-  //BallY = BallY + tmpY;
-  //BallX = BallX + tmpX;
-  //applySurface(375, 75, playArea, screen);
-  //moveMela(MelaX);
-  //SDL_Flip(screen);
-  return false;
+  if ((int)tmpX >= 1 || (int)tmpX <= -1)
+    {
+      BallX = BallX + (int)tmpX;
+      time1 = time2;
+      returnValue = true;
+    }
+    
+  return returnValue;
 }
 
 void drawBall()
@@ -381,7 +374,7 @@ void gameOn()
 {
 
   //Set initial values
-  BallSpeedX = 0;
+  BallSpeedX = 360;
   BallSpeedY = 120;
   BallX = 520/2;
   BallY = 0;
@@ -394,7 +387,7 @@ void gameOn()
   applySurface(0, 0, background, screen);
   applySurface(375, 75, playArea, screen);
   applySurface((int)MelaX - 80/2, 630, mela, screen);
-  //applySurface(375 + 520/2 - 10/2, 620, ball, screen);
+  applySurface(375 + 520/2 - 10/2, 620, ball, screen);
   applySurface(375 + (int)BallX, 620 - (int)BallY, ball, screen);
   
   //Apply texts to the screen
@@ -416,15 +409,15 @@ void gameOn()
       time2 = myTimer.get_ticks();
       if (calculateBallPosition() == true)
 	{
-	  /*
+
 	  if (checkBallCollision() == true)
 	    {
 	
 	    }
-	  */
+
 	  applySurface(375, 75, playArea, screen);
 	  drawBall();
-	  //drawMela();
+	  drawMela();
 	  SDL_Flip(screen);
 	}
     } //quit == false && game_over == false
