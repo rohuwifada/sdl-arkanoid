@@ -52,10 +52,14 @@ double prevBallX;
 double MelaX;
 double BallSpeedX;
 double BallSpeedY;
-Uint32 time1 = 0;
-Uint32 time2 = 0;
-double tmpTime1;
-double tmpTime2;
+Uint32 time1Y = 0;
+Uint32 time2Y = 0;
+double tmpTime1Y;
+double tmpTime2Y;
+Uint32 time1X = 0;
+Uint32 time2X = 0;
+double tmpTime1X;
+double tmpTime2X;
 double tmpY = 0;
 double tmpX = 0;
 
@@ -319,10 +323,12 @@ void handleEvents()
 
 bool calculateBallPosition()
 {
-  tmpTime1 = time1;
-  tmpTime2 = time2;
-  tmpY = (tmpTime2 - tmpTime1) / 1000 * BallSpeedY;
-  tmpX = (tmpTime2 - tmpTime1) / 1000 * BallSpeedX;
+  tmpTime1Y = time1Y;
+  tmpTime2Y = time2Y;
+  tmpTime1X = time1X;
+  tmpTime2X = time2X;
+  tmpY = (tmpTime2Y - tmpTime1Y) / 1000 * BallSpeedY;
+  tmpX = (tmpTime2X - tmpTime1X) / 1000 * BallSpeedX;
   bool returnValue = false;
 
   if ((int)tmpY >= 1 || (int)tmpY <= -1)
@@ -330,14 +336,14 @@ bool calculateBallPosition()
       BallY = BallY + (int)tmpY;
       //std::cout << "BallY: ";
       //std::cout << BallY << std::endl;
-      time1 = time2;
+      time1Y = time2Y;
       returnValue = true;
     }
 
   if ((int)tmpX >= 1 || (int)tmpX <= -1)
     {
       BallX = BallX + (int)tmpX;
-      time1 = time2;
+      time1X = time2X;
       returnValue = true;
     }
     
@@ -367,6 +373,14 @@ bool checkBallCollision()
       BallSpeedY = BallSpeedY * -1;
       return true;
     }
+
+  int tmpInt = (int)MelaX - (int)BallX + 375;
+  if (BallY <= 5 && BallY > 0 && abs(tmpInt) <= 100)
+    {
+      BallSpeedY = BallSpeedY * -1;
+      return true;
+    }
+
   return false;
 }
 
@@ -374,8 +388,8 @@ void gameOn()
 {
 
   //Set initial values
-  BallSpeedX = 360;
-  BallSpeedY = 120;
+  BallSpeedX = 240;
+  BallSpeedY = 240;
   BallX = 520/2;
   BallY = 0;
   prevBallX = BallX;
@@ -400,13 +414,15 @@ void gameOn()
   
   //Start Time
   myTimer.start();
-  time1 = myTimer.get_ticks();
+  time1Y = myTimer.get_ticks();
+  time1X = myTimer.get_ticks();
   
   //While the user hasn't quit
   while (quit == false)
     {
       handleEvents();
-      time2 = myTimer.get_ticks();
+      time2Y = myTimer.get_ticks();
+      time2X = myTimer.get_ticks();
       if (calculateBallPosition() == true)
 	{
 
