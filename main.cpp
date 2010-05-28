@@ -75,7 +75,7 @@ void printText(string text, SDL_Surface *surface, int X, int Y, bool justified, 
 void handleEvents();
 bool calculateMelaPosition(int x);
 bool calculateBallPosition();
-bool checkBallCollision();
+bool checkBallCollision(int x, int y);
 void drawBall();
 void drawMela();
 SDL_Surface *load_image(string filename);
@@ -279,7 +279,7 @@ bool calculateMelaPosition(int x)
     }
   else if (x >= 375 + 40 && x <= 375 + 520 - 40)
     {
-      SDL_ShowCursor(SDL_ENABLE);
+      SDL_ShowCursor(SDL_DISABLE);
       MelaX = x;
       return true;
     }
@@ -330,12 +330,38 @@ bool calculateBallPosition()
   tmpY = (tmpTime2Y - tmpTime1Y) / 1000 * BallSpeedY;
   tmpX = (tmpTime2X - tmpTime1X) / 1000 * BallSpeedX;
   bool returnValue = false;
+  bool earlyCollision = false;
+  int i = 0;
 
   if ((int)tmpY >= 1 || (int)tmpY <= -1)
     {
-      BallY = BallY + (int)tmpY;
-      //std::cout << "BallY: ";
-      //std::cout << BallY << std::endl;
+      for (i = 1; i <= abs((int)tmpY); i++)
+	{
+	  if (tmpY > 0)
+	    {
+	      if (checkBallCollision((int)BallX, (int)BallY + i) == true)
+		{
+		  earlyCollision = true;
+		  BallY = BallY + i;
+		  break;
+		}
+	    }
+	  else
+	    {
+	      if (checkBallCollision((int)BallX, (int)BallY - i) == true)
+		{
+		  earlyCollision = true;
+		  BallY = BallY - i;
+		  break;
+		}
+	    }
+	}
+
+      if (earlyCollision == false)
+	{
+	  BallY = BallY + tmpY;
+	}
+
       time1Y = time2Y;
       returnValue = true;
     }
@@ -352,7 +378,7 @@ bool calculateBallPosition()
 
 void drawBall()
 {
-  applySurface(375 + (int)BallX, 620 - (int)BallY, ball, screen);
+  applySurface(375 + (int)BallX, 618 - (int)BallY, ball, screen);
 }
 
 void drawMela()
@@ -360,15 +386,15 @@ void drawMela()
   applySurface((int)MelaX - 80/2, 630, mela, screen);
 }
 
-bool checkBallCollision()
+bool checkBallCollision(int x, int y)
 {
-  if (BallX <= 0 || BallX >= 520 - 5)
+  if (BallX <= 0 || BallX >= 520 - 12)
     {
       BallSpeedX = BallSpeedX * -1;
       return true;
     }
   
-  if (BallY >= 545)
+  if (y >= 540)
     {
       BallSpeedY = BallSpeedY * -1;
       return true;
@@ -376,7 +402,7 @@ bool checkBallCollision()
 
   int tmpInt = (int)MelaX - ((int)BallX + 375);
   //std::cout << "tmpInt: " << abs(tmpInt) << std::endl;
-  if (BallY <= 5 && BallY > 0 && abs(tmpInt) <= 40)
+  if (BallY <= 1 && BallY > 0 && abs(tmpInt) <= 40)
     {
       BallSpeedY = BallSpeedY * -1;
       return true;
@@ -389,8 +415,8 @@ void gameOn()
 {
 
   //Set initial values
-  BallSpeedX = 240;
-  BallSpeedY = 240;
+  BallSpeedX = 0;
+  BallSpeedY = 360;
   BallX = 520/2;
   BallY = 0;
   prevBallX = BallX;
@@ -402,7 +428,7 @@ void gameOn()
   applySurface(0, 0, background, screen);
   applySurface(375, 75, playArea, screen);
   applySurface((int)MelaX - 80/2, 630, mela, screen);
-  applySurface(375 + 520/2 - 10/2, 620, ball, screen);
+  applySurface(375 + 520/2 - 10/2, 618, ball, screen);
   applySurface(375 + (int)BallX, 620 - (int)BallY, ball, screen);
   
   //Apply texts to the screen
@@ -426,12 +452,6 @@ void gameOn()
       time2X = myTimer.get_ticks();
       if (calculateBallPosition() == true)
 	{
-
-	  if (checkBallCollision() == true)
-	    {
-	
-	    }
-
 	  applySurface(375, 75, playArea, screen);
 	  drawBall();
 	  drawMela();
