@@ -374,8 +374,9 @@ bool checkBallCollision()
       return true;
     }
 
-  int tmpInt = (int)MelaX - (int)BallX + 375;
-  if (BallY <= 5 && BallY > 0 && abs(tmpInt) <= 100)
+  int tmpInt = (int)MelaX - ((int)BallX + 375);
+  //std::cout << "tmpInt: " << abs(tmpInt) << std::endl;
+  if (BallY <= 5 && BallY > 0 && abs(tmpInt) <= 40)
     {
       BallSpeedY = BallSpeedY * -1;
       return true;
