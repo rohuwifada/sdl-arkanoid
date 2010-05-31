@@ -9,6 +9,7 @@
 //#include "SDL/SDL_mixer.h"
 #include "Timer.h"
 #include <iostream>
+#include <cmath>
 
 #define SCREENMODE SDL_SWSURFACE
 #define SURFACETYPE SDL_SWSURFACE
@@ -51,6 +52,7 @@ int BallY;
 int MelaX;
 double BallSpeedX;
 double BallSpeedY;
+double BallSpeedResultant;
 Uint32 time1Y = 0;
 Uint32 time2Y = 0;
 double tmpTime1Y;
@@ -358,7 +360,7 @@ bool calculateBallPosition()
 
       if (collision == false)
 	{
-	  BallY = BallY + tmpY;
+	  BallY = BallY + (int)tmpY;
 	}
 
       time1Y = time2Y;
@@ -392,7 +394,7 @@ bool calculateBallPosition()
 
       if (collision == false)
 	{
-	  BallX = BallX + tmpX;
+	  BallX = BallX + (int)tmpX;
 	}
 
       time1X = time2X;
@@ -429,16 +431,19 @@ bool checkBallCollision(int x, int y, bool checkX)
       BallSpeedY = BallSpeedY * -1;
       return true;
     }
-
-  int tmpInt = MelaX - BallX;
   
-  if (y == 1)
+  if (y == 1 && abs(MelaX - x) <= 40 + 6)
     {
-      int foo;
-      foo = 2;
-    }
-  if (y == 1 && abs(tmpInt) <= 40)
-    {
+      if (MelaX - x > 0) //Ball hits on the left side of Mela
+	{
+	  BallSpeedX = -1 * fabs(BallSpeedX) * abs(MelaX - x) * 0.1;
+	}
+
+      if (MelaX - x < 0) //Ball hits on the right side of Mela
+	{
+	  BallSpeedX = fabs(BallSpeedX) * abs(MelaX - x) * 0.1;
+	}
+
       BallSpeedY = BallSpeedY * -1;
       return true;
     }
@@ -450,8 +455,9 @@ void gameOn()
 {
 
   //Set initial values
-  BallSpeedX = 0;
-  BallSpeedY = 120;
+  BallSpeedX = 1;
+  BallSpeedY = 360;
+  BallSpeedResultant = sqrt(pow(BallSpeedX,2) + pow(BallSpeedY,2));
   BallX = 520/2;
   BallY = 2;
   MelaX = 520/2;
