@@ -30,7 +30,8 @@ SDL_Surface *ball = NULL;
 SDL_PixelFormat *pxlformat = NULL;
 
 //Timer
-Timer myTimer;
+Timer myTimerX;
+Timer myTimerY;
 
 //TTF Fonts
 //TTF_Font *font = NULL;
@@ -45,11 +46,9 @@ SDL_Event event;
 
 //Variables
 bool quit;
-double BallX;
-double BallY;
-double prevBallY;
-double prevBallX;
-double MelaX;
+int BallX;
+int BallY;
+int MelaX;
 double BallSpeedX;
 double BallSpeedY;
 Uint32 time1Y = 0;
@@ -75,7 +74,7 @@ void printText(string text, SDL_Surface *surface, int X, int Y, bool justified, 
 void handleEvents();
 bool calculateMelaPosition(int x);
 bool calculateBallPosition();
-bool checkBallCollision(int x, int y);
+bool checkBallCollision(int x, int y, bool checkX);
 void drawBall();
 void drawMela();
 SDL_Surface *load_image(string filename);
@@ -274,19 +273,19 @@ bool calculateMelaPosition(int x)
   if (x > 0 && x < 375 + 40)
     {
       SDL_ShowCursor(SDL_ENABLE);
-      MelaX = 375 + 40;
+      MelaX = 40;
       return false;
     }
   else if (x >= 375 + 40 && x <= 375 + 520 - 40)
     {
       SDL_ShowCursor(SDL_DISABLE);
-      MelaX = x;
+      MelaX = 40 + x - (375 + 40);
       return true;
     }
   else
     {
       SDL_ShowCursor(SDL_ENABLE);
-      MelaX = 375 + 520 - 40;
+      MelaX = 520 - 40;
       return false;
     }
 
@@ -330,34 +329,34 @@ bool calculateBallPosition()
   tmpY = (tmpTime2Y - tmpTime1Y) / 1000 * BallSpeedY;
   tmpX = (tmpTime2X - tmpTime1X) / 1000 * BallSpeedX;
   bool returnValue = false;
-  bool earlyCollision = false;
+  bool collision = false;
   int i = 0;
 
   if ((int)tmpY >= 1 || (int)tmpY <= -1)
     {
       for (i = 1; i <= abs((int)tmpY); i++)
 	{
-	  if (tmpY > 0)
+	  if (BallSpeedY > 0)
 	    {
-	      if (checkBallCollision((int)BallX, (int)BallY + i) == true)
+	      if (checkBallCollision(BallX, BallY + i, false) == true)
 		{
-		  earlyCollision = true;
-		  BallY = BallY + i;
+		  collision = true;
+		  BallY = BallY + i - 1;
 		  break;
 		}
 	    }
 	  else
 	    {
-	      if (checkBallCollision((int)BallX, (int)BallY - i) == true)
+	      if (checkBallCollision(BallX, BallY - i, false) == true)
 		{
-		  earlyCollision = true;
-		  BallY = BallY - i;
+		  collision = true;
+		  BallY = BallY - i + 1;
 		  break;
 		}
 	    }
 	}
 
-      if (earlyCollision == false)
+      if (collision == false)
 	{
 	  BallY = BallY + tmpY;
 	}
@@ -366,9 +365,36 @@ bool calculateBallPosition()
       returnValue = true;
     }
 
+  collision = false;
   if ((int)tmpX >= 1 || (int)tmpX <= -1)
     {
-      BallX = BallX + (int)tmpX;
+      for (i = 1; i <= abs((int)tmpX); i++)
+	{
+	  if (BallSpeedX > 0)
+	    {
+	      if (checkBallCollision(BallX + i, BallY, true) == true)
+		{
+		  collision = true;
+		  BallX = BallX + i - 1;
+		  break;
+		}
+	    }
+	  else
+	    {
+	      if (checkBallCollision(BallX - i, BallY, true) == true)
+		{
+		  collision = true;
+		  BallX = BallX - i + 1;
+		  break;
+		}
+	    }
+	}
+
+      if (collision == false)
+	{
+	  BallX = BallX + tmpX;
+	}
+
       time1X = time2X;
       returnValue = true;
     }
@@ -378,20 +404,24 @@ bool calculateBallPosition()
 
 void drawBall()
 {
-  applySurface(375 + (int)BallX, 618 - (int)BallY, ball, screen);
+  applySurface(375 + BallX - 6, 618 - BallY, ball, screen);
+  std::cout << "M: " << MelaX << " B: " << BallX << " D: " << abs(MelaX - BallX) << std::endl; 
 }
 
 void drawMela()
 {
-  applySurface((int)MelaX - 80/2, 630, mela, screen);
+  applySurface(375 + MelaX - 40, 630, mela, screen);
 }
 
-bool checkBallCollision(int x, int y)
+bool checkBallCollision(int x, int y, bool checkX)
 {
-  if (BallX <= 0 || BallX >= 520 - 12)
+  if (checkX == true)
     {
-      BallSpeedX = BallSpeedX * -1;
-      return true;
+      if (x <= 0 || x > (520 - 12))
+	{
+	  BallSpeedX = BallSpeedX * -1;
+	  return true;
+	}
     }
   
   if (y >= 540)
@@ -400,9 +430,14 @@ bool checkBallCollision(int x, int y)
       return true;
     }
 
-  int tmpInt = (int)MelaX - ((int)BallX + 375);
-  //std::cout << "tmpInt: " << abs(tmpInt) << std::endl;
-  if (BallY <= 1 && BallY > 0 && abs(tmpInt) <= 40)
+  int tmpInt = MelaX - BallX;
+  
+  if (y == 1)
+    {
+      int foo;
+      foo = 2;
+    }
+  if (y == 1 && abs(tmpInt) <= 40)
     {
       BallSpeedY = BallSpeedY * -1;
       return true;
@@ -416,20 +451,17 @@ void gameOn()
 
   //Set initial values
   BallSpeedX = 0;
-  BallSpeedY = 360;
+  BallSpeedY = 120;
   BallX = 520/2;
-  BallY = 0;
-  prevBallX = BallX;
-  prevBallY = BallY;
-  MelaX = 375 + 520/2;
-
+  BallY = 2;
+  MelaX = 520/2;
 
   //Apply the background to the screen
   applySurface(0, 0, background, screen);
   applySurface(375, 75, playArea, screen);
-  applySurface((int)MelaX - 80/2, 630, mela, screen);
-  applySurface(375 + 520/2 - 10/2, 618, ball, screen);
-  applySurface(375 + (int)BallX, 620 - (int)BallY, ball, screen);
+  applySurface(375 + MelaX, 630, mela, screen);
+  applySurface(375 + BallX - 12/2, 618, ball, screen);
+  //applySurface(375 + (int)BallX, 620 - (int)BallY, ball, screen);
   
   //Apply texts to the screen
   //print_text("NEXT", nextText, 800, 85, true, fontColorWhite, false, font, false);
@@ -440,16 +472,17 @@ void gameOn()
   SDL_Flip(screen);
   
   //Start Time
-  myTimer.start();
-  time1Y = myTimer.get_ticks();
-  time1X = myTimer.get_ticks();
+  myTimerX.start();
+  myTimerY.start();
+  time1Y = myTimerY.get_ticks();
+  time1X = myTimerX.get_ticks();
   
   //While the user hasn't quit
   while (quit == false)
     {
       handleEvents();
-      time2Y = myTimer.get_ticks();
-      time2X = myTimer.get_ticks();
+      time2Y = myTimerY.get_ticks();
+      time2X = myTimerX.get_ticks();
       if (calculateBallPosition() == true)
 	{
 	  applySurface(375, 75, playArea, screen);
@@ -459,7 +492,8 @@ void gameOn()
 	}
     } //quit == false && game_over == false
   
-  myTimer.stop();
+  myTimerX.stop();
+  myTimerY.stop();
   
   //If the user has Xed out the window
   
