@@ -63,6 +63,8 @@ double tmpTime1X;
 double tmpTime2X;
 double tmpY = 0;
 double tmpX = 0;
+const double PI = 3.141592;
+
 
 //Methods and functions
 bool init();
@@ -343,7 +345,7 @@ bool calculateBallPosition()
 	      if (checkBallCollision(BallX, BallY + i, false) == true)
 		{
 		  collision = true;
-		  BallY = BallY + i - 1;
+		  BallY = BallY + i;
 		  break;
 		}
 	    }
@@ -352,7 +354,7 @@ bool calculateBallPosition()
 	      if (checkBallCollision(BallX, BallY - i, false) == true)
 		{
 		  collision = true;
-		  BallY = BallY - i + 1;
+		  BallY = BallY - i;
 		  break;
 		}
 	    }
@@ -377,7 +379,7 @@ bool calculateBallPosition()
 	      if (checkBallCollision(BallX + i, BallY, true) == true)
 		{
 		  collision = true;
-		  BallX = BallX + i - 1;
+		  BallX = BallX + i;
 		  break;
 		}
 	    }
@@ -386,7 +388,7 @@ bool calculateBallPosition()
 	      if (checkBallCollision(BallX - i, BallY, true) == true)
 		{
 		  collision = true;
-		  BallX = BallX - i + 1;
+		  BallX = BallX - i;
 		  break;
 		}
 	    }
@@ -407,7 +409,7 @@ bool calculateBallPosition()
 void drawBall()
 {
   applySurface(375 + BallX - 6, 618 - BallY, ball, screen);
-  std::cout << "M: " << MelaX << " B: " << BallX << " D: " << abs(MelaX - BallX) << std::endl; 
+  //  std::cout << "M: " << MelaX << " B: " << BallX << " D: " << abs(MelaX - BallX) << std::endl; 
 }
 
 void drawMela()
@@ -419,32 +421,34 @@ bool checkBallCollision(int x, int y, bool checkX)
 {
   if (checkX == true)
     {
-      if (x <= 0 || x > (520 - 12))
+      if (x <= 0 + 6 || x > (520 - 12))
 	{
 	  BallSpeedX = BallSpeedX * -1;
 	  return true;
 	}
     }
   
-  if (y >= 540)
+  if (y >= 540 && BallSpeedY > 0)
     {
       BallSpeedY = BallSpeedY * -1;
       return true;
     }
   
-  if (y == 1 && abs(MelaX - x) <= 40 + 6)
+  if (y == 1 && abs(MelaX - x) <= 40 + 6 && BallSpeedY < 0)
     {
+      BallSpeedResultant = sqrt(pow(BallSpeedX,2) + pow(BallSpeedY,2));
       if (MelaX - x > 0) //Ball hits on the left side of Mela
 	{
-	  BallSpeedX = -1 * fabs(BallSpeedX) * abs(MelaX - x) * 0.1;
+	  BallSpeedX = -1 * BallSpeedResultant / sqrt(1 + pow(tan((40 - (MelaX - x)) * 2 * 180 / PI),2));
+	  BallSpeedY = -1 * BallSpeedX * tan(((40 - (MelaX - x))) * 2 * 180 / PI);
 	}
 
       if (MelaX - x < 0) //Ball hits on the right side of Mela
 	{
-	  BallSpeedX = fabs(BallSpeedX) * abs(MelaX - x) * 0.1;
+	  BallSpeedX = BallSpeedResultant / sqrt(1 + pow(tan((40 - (MelaX - x)) * 2 * 180 / PI),2));
+	  BallSpeedY = BallSpeedX * tan(((40 - (MelaX - x))) * 2 * 180 / PI);
 	}
 
-      BallSpeedY = BallSpeedY * -1;
       return true;
     }
 
@@ -456,7 +460,7 @@ void gameOn()
 
   //Set initial values
   BallSpeedX = 1;
-  BallSpeedY = 360;
+  BallSpeedY = 240;
   BallSpeedResultant = sqrt(pow(BallSpeedX,2) + pow(BallSpeedY,2));
   BallX = 520/2;
   BallY = 2;
