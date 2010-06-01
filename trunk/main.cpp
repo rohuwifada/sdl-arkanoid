@@ -427,29 +427,31 @@ bool checkBallCollision(int x, int y, bool checkX)
 	  return true;
 	}
     }
-  
-  if (y >= 540 && BallSpeedY > 0)
+  else
     {
-      BallSpeedY = BallSpeedY * -1;
-      return true;
-    }
-  
-  if (y == 1 && abs(MelaX - x) <= 40 + 6 && BallSpeedY < 0)
-    {
-      BallSpeedResultant = sqrt(pow(BallSpeedX,2) + pow(BallSpeedY,2));
-      if (MelaX - x > 0) //Ball hits on the left side of Mela
+      if (y >= 540 && BallSpeedY > 0)
 	{
-	  BallSpeedX = -1 * BallSpeedResultant / sqrt(1 + pow(tan((40 - (MelaX - x)) * 2 * 180 / PI),2));
-	  BallSpeedY = -1 * BallSpeedX * tan(((40 - (MelaX - x))) * 2 * 180 / PI);
+	  BallSpeedY = BallSpeedY * -1;
+	  return true;
 	}
 
-      if (MelaX - x < 0) //Ball hits on the right side of Mela
+      if (y == 1 && abs(MelaX - x) <= 40 + 6 && BallSpeedY < 0)
 	{
-	  BallSpeedX = BallSpeedResultant / sqrt(1 + pow(tan((40 - (MelaX - x)) * 2 * 180 / PI),2));
-	  BallSpeedY = BallSpeedX * tan(((40 - (MelaX - x))) * 2 * 180 / PI);
+	  BallSpeedResultant = sqrt(pow(BallSpeedX,2) + pow(BallSpeedY,2));
+	  if (MelaX - x > 0) //Ball hits on the left side of Mela
+	    {
+	      BallSpeedX = -1 * BallSpeedResultant / sqrt(1 + pow(tan((40 - (MelaX - x)) * 2 * 180 / PI),2));
+	      BallSpeedY = -1 * BallSpeedX * tan(((40 - (MelaX - x))) * 2 * 180 / PI);
+	    }
+	  
+	  if (MelaX - x < 0) //Ball hits on the right side of Mela
+	    {
+	      BallSpeedX = BallSpeedResultant / sqrt(1 + pow(tan((40 - (MelaX - x)) * 2 * 180 / PI),2));
+	      BallSpeedY = BallSpeedX * tan(((40 - (MelaX - x))) * 2 * 180 / PI);
+	    }
+	  
+	  return true;
 	}
-
-      return true;
     }
 
   return false;
@@ -460,7 +462,7 @@ void gameOn()
 
   //Set initial values
   BallSpeedX = 1;
-  BallSpeedY = 240;
+  BallSpeedY = 360;
   BallSpeedResultant = sqrt(pow(BallSpeedX,2) + pow(BallSpeedY,2));
   BallX = 520/2;
   BallY = 2;
