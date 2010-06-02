@@ -49,7 +49,10 @@ SDL_Event event;
 bool quit;
 int BallX;
 int BallY;
+int prevBallX;
+int prevBallY;
 int MelaX;
+int prevMelaX;
 double BallSpeedX;
 double BallSpeedY;
 double BallSpeedResultant;
@@ -345,6 +348,7 @@ bool calculateBallPosition()
 	      if (checkBallCollision(BallX, BallY + i, false) == true)
 		{
 		  collision = true;
+		  prevBallY = BallY;
 		  BallY = BallY + i;
 		  break;
 		}
@@ -354,6 +358,7 @@ bool calculateBallPosition()
 	      if (checkBallCollision(BallX, BallY - i, false) == true)
 		{
 		  collision = true;
+		  prevBallY = BallY;
 		  BallY = BallY - i;
 		  break;
 		}
@@ -362,6 +367,7 @@ bool calculateBallPosition()
 
       if (collision == false)
 	{
+	  prevBallY = BallY;
 	  BallY = BallY + (int)tmpY;
 	}
 
@@ -379,6 +385,7 @@ bool calculateBallPosition()
 	      if (checkBallCollision(BallX + i, BallY, true) == true)
 		{
 		  collision = true;
+		  prevBallX = BallX;
 		  BallX = BallX + i;
 		  break;
 		}
@@ -388,6 +395,7 @@ bool calculateBallPosition()
 	      if (checkBallCollision(BallX - i, BallY, true) == true)
 		{
 		  collision = true;
+		  prevBallX = BallX;
 		  BallX = BallX - i;
 		  break;
 		}
@@ -396,6 +404,7 @@ bool calculateBallPosition()
 
       if (collision == false)
 	{
+	  prevBallX = BallX;
 	  BallX = BallX + (int)tmpX;
 	}
 
@@ -408,6 +417,12 @@ bool calculateBallPosition()
 
 void drawBall()
 {
+  SDL_Rect rect;
+  rect.w = 12;
+  rect.h = 12;
+  rect.x = prevBallX - 6;
+  rect.y = prevBallY;
+  SDL_FillRect(playArea, &rect, 0x000000);
   applySurface(375 + BallX - 6, 618 - BallY, ball, screen);
   //  std::cout << "M: " << MelaX << " B: " << BallX << " D: " << abs(MelaX - BallX) << std::endl; 
 }
@@ -435,21 +450,47 @@ bool checkBallCollision(int x, int y, bool checkX)
 	  return true;
 	}
 
-      if (y == 1 && abs(MelaX - x) <= 40 + 6 && BallSpeedY < 0)
+      int dif = MelaX - x;
+      if (y == 0 && abs(dif) <= 40 + 6 && BallSpeedY < 0)
 	{
 	  BallSpeedResultant = sqrt(pow(BallSpeedX,2) + pow(BallSpeedY,2));
-	  if (MelaX - x > 0) //Ball hits on the left side of Mela
+	  if (dif > 0) //Ball hits on the left side of Mela
 	    {
-	      BallSpeedX = -1 * BallSpeedResultant / sqrt(1 + pow(tan((40 - (MelaX - x)) * 2 * 180 / PI),2));
-	      BallSpeedY = -1 * BallSpeedX * tan(((40 - (MelaX - x))) * 2 * 180 / PI);
+	      if (dif > 40)
+		{
+		  BallSpeedX = -1 * BallSpeedResultant / sqrt(1 + pow(tan((90 - 80) * 180 / PI),2));
+		  BallSpeedY = sqrt(pow(BallSpeedResultant,2) - pow(BallSpeedX,2));
+		}
+	      else
+		{
+		  BallSpeedX = -1 * BallSpeedResultant / sqrt(1 + pow(tan((90 - dif * 2) * 180 / PI),2));
+		  BallSpeedY = sqrt(pow(BallSpeedResultant,2) - pow(BallSpeedX,2));
+		}
+
 	    }
 	  
-	  if (MelaX - x < 0) //Ball hits on the right side of Mela
+	  if (dif < 0) //Ball hits on the right side of Mela
 	    {
-	      BallSpeedX = BallSpeedResultant / sqrt(1 + pow(tan((40 - (MelaX - x)) * 2 * 180 / PI),2));
-	      BallSpeedY = BallSpeedX * tan(((40 - (MelaX - x))) * 2 * 180 / PI);
+	      if (dif < -40)
+		{
+		  BallSpeedX = BallSpeedResultant / sqrt(1 + pow(tan((90 - 80) * 180 / PI),2));
+		  BallSpeedY = sqrt(pow(BallSpeedResultant,2) - pow(BallSpeedX,2));
+		}
+	      else
+		{
+		  BallSpeedX = BallSpeedResultant / sqrt(1 + pow(tan((90 - abs(dif) * 2) * 180 / PI),2));
+		  BallSpeedY = sqrt(pow(BallSpeedResultant,2) - pow(BallSpeedX,2));
+		}
+
 	    }
-	  
+
+	  if (dif == 0) //Ball hits the center of Mela
+	    {
+	      BallSpeedX = 0;
+	      BallSpeedY = BallSpeedResultant;
+	    }
+
+	  time1X = time2X;
 	  return true;
 	}
     }
@@ -461,11 +502,11 @@ void gameOn()
 {
 
   //Set initial values
-  BallSpeedX = 1;
+  BallSpeedX = 0;
   BallSpeedY = 360;
   BallSpeedResultant = sqrt(pow(BallSpeedX,2) + pow(BallSpeedY,2));
   BallX = 520/2;
-  BallY = 2;
+  BallY = 1;
   MelaX = 520/2;
 
   //Apply the background to the screen
@@ -497,7 +538,7 @@ void gameOn()
       time2X = myTimerX.get_ticks();
       if (calculateBallPosition() == true)
 	{
-	  applySurface(375, 75, playArea, screen);
+	  //applySurface(375, 75, playArea, screen);
 	  drawBall();
 	  drawMela();
 	  SDL_Flip(screen);
