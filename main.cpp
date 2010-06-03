@@ -348,7 +348,6 @@ bool calculateBallPosition()
 	      if (checkBallCollision(BallX, BallY + i, false) == true)
 		{
 		  collision = true;
-		  prevBallY = BallY;
 		  BallY = BallY + i;
 		  break;
 		}
@@ -358,7 +357,6 @@ bool calculateBallPosition()
 	      if (checkBallCollision(BallX, BallY - i, false) == true)
 		{
 		  collision = true;
-		  prevBallY = BallY;
 		  BallY = BallY - i;
 		  break;
 		}
@@ -367,7 +365,6 @@ bool calculateBallPosition()
 
       if (collision == false)
 	{
-	  prevBallY = BallY;
 	  BallY = BallY + (int)tmpY;
 	}
 
@@ -385,7 +382,6 @@ bool calculateBallPosition()
 	      if (checkBallCollision(BallX + i, BallY, true) == true)
 		{
 		  collision = true;
-		  prevBallX = BallX;
 		  BallX = BallX + i;
 		  break;
 		}
@@ -395,7 +391,6 @@ bool calculateBallPosition()
 	      if (checkBallCollision(BallX - i, BallY, true) == true)
 		{
 		  collision = true;
-		  prevBallX = BallX;
 		  BallX = BallX - i;
 		  break;
 		}
@@ -404,7 +399,6 @@ bool calculateBallPosition()
 
       if (collision == false)
 	{
-	  prevBallX = BallX;
 	  BallX = BallX + (int)tmpX;
 	}
 
@@ -420,15 +414,24 @@ void drawBall()
   SDL_Rect rect;
   rect.w = 12;
   rect.h = 12;
-  rect.x = prevBallX - 6;
-  rect.y = prevBallY;
-  SDL_FillRect(playArea, &rect, 0x000000);
+  rect.x = 375 + prevBallX - 6;
+  rect.y = 618 - prevBallY;
+  SDL_FillRect(screen, &rect, 0x000000);
+  prevBallY = BallY;
+  prevBallX = BallX;
   applySurface(375 + BallX - 6, 618 - BallY, ball, screen);
   //  std::cout << "M: " << MelaX << " B: " << BallX << " D: " << abs(MelaX - BallX) << std::endl; 
 }
 
 void drawMela()
 {
+  SDL_Rect rect;
+  rect.w = 80;
+  rect.h = 13;
+  rect.x = 375 + prevMelaX - 40;
+  rect.y = 630;
+  SDL_FillRect(screen, &rect, 0x000000);
+  prevMelaX = MelaX;
   applySurface(375 + MelaX - 40, 630, mela, screen);
 }
 
@@ -506,20 +509,20 @@ void gameOn()
   BallSpeedY = 360;
   BallSpeedResultant = sqrt(pow(BallSpeedX,2) + pow(BallSpeedY,2));
   BallX = 520/2;
+  prevBallX = BallX;
   BallY = 1;
+  prevBallY = BallY;
   MelaX = 520/2;
+  prevMelaX = MelaX;
 
   //Apply the background to the screen
   applySurface(0, 0, background, screen);
   applySurface(375, 75, playArea, screen);
   applySurface(375 + MelaX, 630, mela, screen);
   applySurface(375 + BallX - 12/2, 618, ball, screen);
-  //applySurface(375 + (int)BallX, 620 - (int)BallY, ball, screen);
   
   //Apply texts to the screen
   //print_text("NEXT", nextText, 800, 85, true, fontColorWhite, false, font, false);
-  
-  //clear screen
   
   //Update the screen
   SDL_Flip(screen);
