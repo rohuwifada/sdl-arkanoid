@@ -27,6 +27,7 @@ SDL_Surface *screen = NULL;
 SDL_Surface *playArea = NULL;
 SDL_Surface *mela = NULL;
 SDL_Surface *ball = NULL;
+SDL_Surface *matrix[17][13];
 
 SDL_PixelFormat *pxlformat = NULL;
 
@@ -67,6 +68,7 @@ double tmpTime2X;
 double tmpY = 0;
 double tmpX = 0;
 const double PI = 3.141592;
+int matrixColor[17][13];
 
 
 //Methods and functions
@@ -85,6 +87,7 @@ bool checkBallCollision(int x, int y, bool checkX);
 void drawBall();
 void drawMela();
 SDL_Surface *load_image(string filename);
+void fillMatrix(int row, int col);
 
 SDL_Surface *load_image(string filename)
 {
@@ -139,7 +142,7 @@ bool init()
     return false;
   
   //Set the window caption
-  SDL_WM_SetCaption("oo00 Balls 00oo", NULL);
+  SDL_WM_SetCaption("Balls", NULL);
   
   /*
   //Set font
@@ -164,6 +167,15 @@ bool init()
   
   */
   
+  for (int row = 0; row < 10; row++)
+    {
+      for (int col = 0; col < 13; col++)
+	{
+	  matrix[row][col] = NULL;
+	  matrixColor[row][col] = 0x888888;
+	}
+    }
+
   //If everything initialized fine
   return true;
 }
@@ -191,13 +203,16 @@ void clearScreen()
 
 void clearPlayArea()
 {
-  SDL_Rect rect;
-  rect.x = 300;
-  rect.y = 300;
-  rect.w = 200;
-  rect.h = 200;
-  SDL_FillRect(screen, &rect, 0x000000);
-  
+  int row;
+  int col;
+
+  for (row = 0; row < 17; row++)
+    {
+      for (col = 0; col < 13; col++)
+	{
+	  fillMatrix(row, col);
+	}
+    }
 }
 
 bool loadFiles()
@@ -222,6 +237,7 @@ void clean_up()
   SDL_FreeSurface(playArea);
   SDL_FreeSurface(mela);
   SDL_FreeSurface(ball);
+  //SDL_FreeSurface(matrix);
   
   //Close fonts
   //TTF_CloseFont(font);
@@ -237,6 +253,25 @@ void clean_up()
   
   //Quit SDL
   SDL_Quit();
+}
+
+void fillMatrix(int row, int col)
+{
+  SDL_Rect tmpRect;
+  
+  tmpRect.x = 40 * col;
+  tmpRect.y = 0 + 20*row;
+  tmpRect.w = 40;
+  tmpRect.h = 20;
+
+  SDL_FillRect(playArea, &tmpRect, 0x666666);
+
+  tmpRect.x = 40 * col + 2;
+  tmpRect.y = 0 + 20 * row + 2;
+  tmpRect.w = 36;
+  tmpRect.h = 36;
+
+  SDL_FillRect(playArea, &tmpRect, matrixColor[row][col]);
 }
 
 void print_text(string text, SDL_Surface *surface, int X, int Y, bool justified, SDL_Color fontColor, bool clear, TTF_Font *fontti, bool menu)
@@ -524,6 +559,10 @@ void gameOn()
   //Apply texts to the screen
   //print_text("NEXT", nextText, 800, 85, true, fontColorWhite, false, font, false);
   
+  //set matrix colors
+  clearPlayArea();
+  applySurface(375, 75, playArea, screen);
+  
   //Update the screen
   SDL_Flip(screen);
   
@@ -539,6 +578,7 @@ void gameOn()
       handleEvents();
       time2Y = myTimerY.get_ticks();
       time2X = myTimerX.get_ticks();
+      /*
       if (calculateBallPosition() == true)
 	{
 	  //applySurface(375, 75, playArea, screen);
@@ -546,6 +586,7 @@ void gameOn()
 	  drawMela();
 	  SDL_Flip(screen);
 	}
+      */
     } //quit == false && game_over == false
   
   myTimerX.stop();
