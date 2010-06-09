@@ -28,6 +28,10 @@ SDL_Surface *playArea = NULL;
 SDL_Surface *mela = NULL;
 SDL_Surface *ball = NULL;
 SDL_Surface *matrix[17][13];
+SDL_Surface *blocksMatrix = NULL;
+
+//Clipping rectangles
+SDL_Rect clip[12];
 
 SDL_PixelFormat *pxlformat = NULL;
 
@@ -88,6 +92,8 @@ void drawBall();
 void drawMela();
 SDL_Surface *load_image(string filename);
 void fillMatrix(int row, int col);
+void clipBlocks();
+void applyBlock(int col, int row, SDL_Rect clip);
 
 SDL_Surface *load_image(string filename)
 {
@@ -176,6 +182,8 @@ bool init()
 	}
     }
 
+  clipBlocks();
+
   //If everything initialized fine
   return true;
 }
@@ -221,6 +229,7 @@ bool loadFiles()
   background = load_image("background.png");
   mela = load_image("mela.png");
   ball = load_image("ball.png");
+  blocksMatrix = load_image("blocks.png");
   
   //If there was an error in loading the image
   if(background == NULL || mela == NULL || ball == NULL)
@@ -536,6 +545,29 @@ bool checkBallCollision(int x, int y, bool checkX)
   return false;
 }
 
+void clipBlocks()
+{
+  for (int i = 0; i < 12; i++)
+    {
+      clip[i].x = 0;
+      clip[i].y = i * 20;
+      clip[i].w = 40;
+      clip[i].h = 20;
+    }
+}
+
+void applyBlock(int col, int row, SDL_Rect *clip)
+{
+  SDL_Rect tmpRect;
+
+  tmpRect.x = col * 40;
+  tmpRect.y = row * 20;
+  tmpRect.w = 40;
+  tmpRect.h = 20;
+
+  SDL_BlitSurface(blocksMatrix, clip, playArea, &tmpRect);
+}
+
 void gameOn()
 {
 
@@ -560,7 +592,20 @@ void gameOn()
   //print_text("NEXT", nextText, 800, 85, true, fontColorWhite, false, font, false);
   
   //set matrix colors
-  clearPlayArea();
+  //clearPlayArea();
+  /*
+  applyBlock(0, 0, &clip[1]);
+  applyBlock(0, 1, &clip[2]);
+  applyBlock(0, 2, &clip[3]);
+  applyBlock(0, 3, &clip[4]);
+  applyBlock(0, 4, &clip[5]);
+  applyBlock(0, 5, &clip[6]);
+  applyBlock(0, 6, &clip[7]);
+  applyBlock(0, 7, &clip[8]);
+  applyBlock(0, 8, &clip[9]);
+  applyBlock(0, 9, &clip[10]);
+  applyBlock(0, 10, &clip[11]);
+  */
   applySurface(375, 75, playArea, screen);
   
   //Update the screen
