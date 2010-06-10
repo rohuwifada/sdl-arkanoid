@@ -93,7 +93,8 @@ void drawMela();
 SDL_Surface *load_image(string filename);
 void fillMatrix(int row, int col);
 void clipBlocks();
-void applyBlock(int col, int row, SDL_Rect clip);
+void applyBlock(int row, int col, SDL_Rect *clip);
+void loadLevel(int lvl);
 
 SDL_Surface *load_image(string filename)
 {
@@ -178,7 +179,7 @@ bool init()
       for (int col = 0; col < 13; col++)
 	{
 	  matrix[row][col] = NULL;
-	  matrixColor[row][col] = 0x888888;
+	  matrixColor[row][col] = 0;
 	}
     }
 
@@ -218,7 +219,7 @@ void clearPlayArea()
     {
       for (col = 0; col < 13; col++)
 	{
-	  fillMatrix(row, col);
+	  applyBlock(row, col, &clip[matrixColor[row][col]]);
 	}
     }
 }
@@ -497,6 +498,20 @@ bool checkBallCollision(int x, int y, bool checkX)
 	  return true;
 	}
 
+      if (y >= 540 - 17 * 20)
+	{
+	  int tmpRow;
+	  int tmpCol;
+	  tmpRow = (540 - y) / 20;
+	  tmpCol = 13 - BallX / 40;
+	  
+	  if (matrixColor[tmpRow][tmpCol] != 0)
+	    {
+	      BallSpeedY = BallSpeedY * -1;
+	      return true;
+	    }
+	}
+
       int dif = MelaX - x;
       if (y == 0 && abs(dif) <= 40 + 6 && BallSpeedY < 0)
 	{
@@ -556,7 +571,7 @@ void clipBlocks()
     }
 }
 
-void applyBlock(int col, int row, SDL_Rect *clip)
+void applyBlock(int row, int col, SDL_Rect *clip)
 {
   SDL_Rect tmpRect;
 
@@ -566,6 +581,26 @@ void applyBlock(int col, int row, SDL_Rect *clip)
   tmpRect.h = 20;
 
   SDL_BlitSurface(blocksMatrix, clip, playArea, &tmpRect);
+}
+
+void loadLevel(int lvl)
+{
+  switch (lvl)
+    {
+    case 1:
+      for (int i = 0; i < 13; i++)
+	{  
+	  matrixColor[4][i] = 9;
+	  matrixColor[5][i] = 5;
+	  matrixColor[6][i] = 6;
+	  matrixColor[7][i] = 8;
+	  matrixColor[8][i] = 7;
+	  matrixColor[9][i] = 4;
+	}
+      break;
+    }
+
+  clearPlayArea();
 }
 
 void gameOn()
@@ -592,20 +627,7 @@ void gameOn()
   //print_text("NEXT", nextText, 800, 85, true, fontColorWhite, false, font, false);
   
   //set matrix colors
-  //clearPlayArea();
-  /*
-  applyBlock(0, 0, &clip[1]);
-  applyBlock(0, 1, &clip[2]);
-  applyBlock(0, 2, &clip[3]);
-  applyBlock(0, 3, &clip[4]);
-  applyBlock(0, 4, &clip[5]);
-  applyBlock(0, 5, &clip[6]);
-  applyBlock(0, 6, &clip[7]);
-  applyBlock(0, 7, &clip[8]);
-  applyBlock(0, 8, &clip[9]);
-  applyBlock(0, 9, &clip[10]);
-  applyBlock(0, 10, &clip[11]);
-  */
+  loadLevel(1);
   applySurface(375, 75, playArea, screen);
   
   //Update the screen
@@ -623,7 +645,6 @@ void gameOn()
       handleEvents();
       time2Y = myTimerY.get_ticks();
       time2X = myTimerX.get_ticks();
-      /*
       if (calculateBallPosition() == true)
 	{
 	  //applySurface(375, 75, playArea, screen);
@@ -631,7 +652,6 @@ void gameOn()
 	  drawMela();
 	  SDL_Flip(screen);
 	}
-      */
     } //quit == false && game_over == false
   
   myTimerX.stop();
