@@ -38,6 +38,7 @@ SDL_PixelFormat *pxlformat = NULL;
 //Timer
 Timer myTimerX;
 Timer myTimerY;
+Timer myTimer;
 
 //TTF Fonts
 //TTF_Font *font = NULL;
@@ -56,6 +57,8 @@ int BallX;
 int BallY;
 int prevBallX;
 int prevBallY;
+double curBallX;
+double curBallY;
 int MelaX;
 int prevMelaX;
 double BallSpeedX;
@@ -67,6 +70,10 @@ double tmpTime1Y;
 double tmpTime2Y;
 Uint32 time1X = 0;
 Uint32 time2X = 0;
+Uint32 time1 = 0;
+Uint32 time2 = 0;
+double tmpTime1;
+double tmpTime2;
 double tmpTime1X;
 double tmpTime2X;
 double tmpY = 0;
@@ -112,10 +119,10 @@ SDL_Surface *load_image(string filename)
   if(loadedImage != NULL)
     {
       //Create an optimized image
-      //optimizedImage = SDL_DisplayFormat(loadedImage);
+      optimizedImage = SDL_DisplayFormat(loadedImage);
       //optimizedImage = SDL_ConvertSurface(loadedImage, screen->format, SDL_HWSURFACE|SDL_DOUBLEBUF);
-      SDL_PixelFormat format = {NULL, 32, 4, 0, 0, 0, 0, 0, 8, 16, 24, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000, 0, 255};
-      optimizedImage = SDL_ConvertSurface(loadedImage, &format, 0);
+      //SDL_PixelFormat format = {NULL, 32, 4, 0, 0, 0, 0, 0, 8, 16, 24, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000, 0, 255};
+      //optimizedImage = SDL_ConvertSurface(loadedImage, &format, 0);
       //Free the old image
       SDL_FreeSurface(loadedImage);
     }
@@ -133,7 +140,7 @@ bool init()
     }
 
   //Set up the screen
-  screen = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP, SDL_FULLSCREEN | SCREENMODE);
+  screen = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP, SCREENMODE);
 
   //If there was an error in setting up the screen
   if(screen == NULL)
@@ -231,7 +238,7 @@ bool loadFiles()
 {
   //Load the image
   background = load_image("background.png");
-  mela = load_image("mela.png");
+  mela = load_image("mela2.png");
   ball = load_image("ball.png");
   blocksMatrix = load_image("blocks.png");
 
@@ -377,95 +384,103 @@ void handleEvents()
 
 bool calculateBallPosition()
 {
-  tmpTime1Y = time1Y;
-  tmpTime2Y = time2Y;
-  tmpTime1X = time1X;
-  tmpTime2X = time2X;
-  tmpY = (tmpTime2Y - tmpTime1Y) / 1000 * BallSpeedY;
-  tmpX = (tmpTime2X - tmpTime1X) / 1000 * BallSpeedX;
+  //tmpTime1Y = time1Y;
+  //tmpTime2Y = time2Y;
+  //tmpTime1X = time1X;
+  //tmpTime2X = time2X;
+  int difY;
+  int difX;
+  tmpTime1 = time1;
+  tmpTime2 = time2;
+  //tmpY = (tmpTime2 - tmpTime1) / 1000 * BallSpeedY;
+  //tmpX = (tmpTime2 - tmpTime1) / 1000 * BallSpeedX;
+  curBallX = curBallX + (tmpTime2 - tmpTime1) / 1000 * BallSpeedX;
+  curBallY = curBallY + (tmpTime2 - tmpTime1) / 1000 * BallSpeedY;
 
-  if (tmpY < 0)
-    intY = (int)ceil(tmpY);
+  if (BallSpeedY < 0)
+    difY = BallY - floor(curBallY);
   else
-    intY = (int)floor(tmpY);
+    difY = floor(curBallY) - BallY;
 
-  if (tmpX < 0)
-    intX = (int)ceil(tmpX);
+  if (BallSpeedX < 0)
+    difX = BallX - floor(curBallX);
   else
-    intX = (int)floor(tmpX);
+    difX = floor(curBallX) - BallX;
 
   bool returnValue = false;
   bool collision = false;
   int i = 0;
 
   //hoplaa jatka tästä
-  if (intY >= 1 || intY <= -1)
-    {
-      for (i = 1; i <= abs(intY); i++)
+  if (difY >= 1)
 	{
-	  if (BallSpeedY > 0)
-	    {
-	      if (checkBallCollision(BallX, BallY + i, false) == true)
+		for (i = 1; i <= difY; i++)
 		{
-		  collision = true;
-		  BallY = BallY + i;
-		  break;
-		}
+			if (BallSpeedY > 0)
+			{
+				if (checkBallCollision(BallX, BallY + i, false) == true)
+				{
+					collision = true;
+					BallY = BallY + i - 1;
+					break;
+				}
 	    }
-	  else
+			else
 	    {
-	      if (checkBallCollision(BallX, BallY - i, false) == true)
-		{
-		  collision = true;
-		  BallY = BallY - i;
-		  break;
-		}
+				if (checkBallCollision(BallX, BallY - i, false) == true)
+				{
+					collision = true;
+					BallY = BallY - i;
+					break;
+				}
 	    }
-	}
+		} //for
 
-      if (collision == false)
-	{
-	  BallY = BallY + (int)tmpY;
-	}
+		if (collision == false)
+		{
+			BallY = BallY + difY;
+		}
 
-      time1Y = time2Y;
-      returnValue = true;
-    }
+		//time1Y = time2Y;
+		returnValue = true;
+	}
 
   collision = false;
-  if ((int)tmpX >= 1 || (int)tmpX <= -1)
-    {
-      for (i = 1; i <= abs((int)tmpX); i++)
+  if (difX >= 1)
 	{
-	  if (BallSpeedX > 0)
+		for (i = 1; i <= difX; i++)
+		{
+			if (BallSpeedX > 0)
 	    {
 	      if (checkBallCollision(BallX + i, BallY, true) == true)
-		{
-		  collision = true;
-		  BallX = BallX + i;
-		  break;
-		}
+				{
+					collision = true;
+					BallX = BallX + i;
+					break;
+				}
 	    }
-	  else
+			else
 	    {
 	      if (checkBallCollision(BallX - i, BallY, true) == true)
-		{
-		  collision = true;
-		  BallX = BallX - i;
-		  break;
-		}
+				{
+					collision = true;
+					BallX = BallX - i;
+					break;
+				}
 	    }
+		} //for
+
+		if (collision == false)
+		{
+			BallX = BallX + difX;
+		}
+
+		//time1X = time2X;
+		returnValue = true;
 	}
 
-      if (collision == false)
-	{
-	  BallX = BallX + (int)tmpX;
-	}
-
-      time1X = time2X;
-      returnValue = true;
-    }
-
+	if (returnValue == true)
+		time1 = time2;
   return returnValue;
 }
 
@@ -503,85 +518,83 @@ bool checkBallCollision(int x, int y, bool checkX)
   tmpCol = x / 40;
 
   if (checkX == true)
-    {
-      if (x <= 0 + 6 || x > (520 - 12)) //hits side walls
 	{
-	  BallSpeedX = BallSpeedX * -1;
-	  return true;
-	}
+		if (x <= 0 + 6 || x > (520 - 12)) //hits side walls
+		{
+			BallSpeedX = BallSpeedX * -1;
+			return true;
+		}
 
-      if (y >= 540 - 17 * 20) //hits block left or right
-	{
-	  if (matrixColor[tmpRow][tmpCol] != 0)
+		if (y >= 540 - 17 * 20) //hits block left or right
+		{
+			if (matrixColor[tmpRow][tmpCol] != 0)
 	    {
 	      explodeBlock(tmpRow, tmpCol);
 	      BallSpeedX = BallSpeedX * -1;
 	      return true;
 	    }
+		}
 	}
-    }
   else
-    {
-      if (y >= 540 && BallSpeedY > 0) //hits upper wall
 	{
-	  BallSpeedY = BallSpeedY * -1;
-	  return true;
-	}
+		if (y >= 540 && BallSpeedY > 0) //hits upper wall
+		{
+			BallSpeedY = BallSpeedY * -1;
+			return true;
+		}
 
-      if (y >= 540 - 17 * 20) //hits block top or bottom
-	{
-	  if (matrixColor[tmpRow][tmpCol] != 0)
-	    {
-	      explodeBlock(tmpRow, tmpCol);
-	      BallSpeedY = BallSpeedY * -1;
-	      return true;
-	    }
-	}
+		if (y >= 540 - 17 * 20) //hits block top or bottom
+		{
+			if (matrixColor[tmpRow][tmpCol] != 0)
+			{
+				explodeBlock(tmpRow, tmpCol);
+				BallSpeedY = BallSpeedY * -1;
+				return true;
+			}
+		}
 
-      double dif = MelaX - x;
-      if (y == 0 && abs(dif) <= 40 + 6 && BallSpeedY < 0)
-	{
-	  BallSpeedResultant = sqrt(pow(BallSpeedX,2) + pow(BallSpeedY,2));
-	  if (dif > 0) //Ball hits on the left side of Mela
+		double dif = MelaX - x;
+		if (y == 0 && abs(dif) <= 40 + 6 && BallSpeedY < 0)
+		{
+			BallSpeedResultant = sqrt(pow(BallSpeedX,2) + pow(BallSpeedY,2));
+			if (dif > 0) //Ball hits on the left side of Mela
 	    {
 	      if (dif > 40)
-		{
-		  BallSpeedX = -1 * BallSpeedResultant / sqrt(1 + pow(tan((90 - 80) / 180 * PI),2));
-		  BallSpeedY = sqrt(pow(BallSpeedResultant,2) - pow(BallSpeedX,2));
-		}
+				{
+					BallSpeedX = -1 * BallSpeedResultant / sqrt(1 + pow(tan((90 - 80) / 180 * PI),2));
+					BallSpeedY = sqrt(pow(BallSpeedResultant,2) - pow(BallSpeedX,2));
+				}
 	      else
-		{
-		  BallSpeedX = -1 * BallSpeedResultant / sqrt(1 + pow(tan((90 - dif * 2) / 180 * PI),2));
-		  BallSpeedY = sqrt(pow(BallSpeedResultant,2) - pow(BallSpeedX,2));
-		}
-
+				{
+					BallSpeedX = -1 * BallSpeedResultant / sqrt(1 + pow(tan((90 - dif * 2) / 180 * PI),2));
+					BallSpeedY = sqrt(pow(BallSpeedResultant,2) - pow(BallSpeedX,2));
+				}
 	    }
 
-	  if (dif < 0) //Ball hits on the right side of Mela
+			if (dif < 0) //Ball hits on the right side of Mela
 	    {
 	      if (dif < -40)
-		{
-		  BallSpeedX = BallSpeedResultant / sqrt(1 + pow(tan((90 - 80) / 180 * PI),2));
-		  BallSpeedY = sqrt(pow(BallSpeedResultant,2) - pow(BallSpeedX,2));
-		}
+				{
+					BallSpeedX = BallSpeedResultant / sqrt(1 + pow(tan((90 - 80) / 180 * PI),2));
+					BallSpeedY = sqrt(pow(BallSpeedResultant,2) - pow(BallSpeedX,2));
+				}
 	      else
-		{
-		  BallSpeedX = BallSpeedResultant / sqrt(1 + pow(tan((90 - abs(dif) * 2) / 180 * PI),2));
-		  BallSpeedY = sqrt(pow(BallSpeedResultant,2) - pow(BallSpeedX,2));
-		}
-
+				{
+					BallSpeedX = BallSpeedResultant / sqrt(1 + pow(tan((90 - abs(dif) * 2) / 180 * PI),2));
+					BallSpeedY = sqrt(pow(BallSpeedResultant,2) - pow(BallSpeedX,2));
+				}
 	    }
 
-	  if (dif == 0) //Ball hits the center of Mela
+			if (dif == 0) //Ball hits the center of Mela
 	    {
 	      BallSpeedX = 0;
 	      BallSpeedY = BallSpeedResultant;
 	    }
 
-	  time1X = time2X;
-	  return true;
+			//time1X = time2X;
+			return true;
+		}
 	}
-    }
 
   return false;
 }
@@ -664,8 +677,10 @@ void gameOn()
   BallSpeedY = 360;
   BallSpeedResultant = sqrt(pow(BallSpeedX,2) + pow(BallSpeedY,2));
   BallX = 520/2;
+  curBallX = BallX;
   prevBallX = BallX;
   BallY = 1;
+  curBallY = BallY;
   prevBallY = BallY;
   MelaX = 520/2;
   prevMelaX = MelaX;
@@ -687,28 +702,32 @@ void gameOn()
   SDL_Flip(screen);
 
   //Start Time
-  myTimerX.start();
-  myTimerY.start();
-  time1Y = myTimerY.get_ticks();
-  time1X = myTimerX.get_ticks();
+  //myTimerX.start();
+  //myTimerY.start();
+  myTimer.start();
+  //time1Y = myTimerY.get_ticks();
+  //time1X = myTimerX.get_ticks();
+  time1 = myTimer.get_ticks();
 
   //While the user hasn't quit
   while (quit == false)
-    {
-      handleEvents();
-      time2Y = myTimerY.get_ticks();
-      time2X = myTimerX.get_ticks();
-      if (calculateBallPosition() == true)
 	{
-	  //applySurface(375, 75, playArea, screen);
-	  drawBall();
-	  drawMela();
-	  SDL_Flip(screen);
-	}
-    } //quit == false && game_over == false
+		handleEvents();
+		//time2Y = myTimerY.get_ticks();
+		//time2X = myTimerX.get_ticks();
+		time2 = myTimer.get_ticks();
+		if (calculateBallPosition() == true)
+		{
+			//applySurface(375, 75, playArea, screen);
+			drawBall();
+			drawMela();
+			SDL_Flip(screen);
+		}
+	} //quit == false && game_over == false
 
-  myTimerX.stop();
-  myTimerY.stop();
+  //myTimerX.stop();
+  //myTimerY.stop();
+  myTimer.stop();
 
   //If the user has Xed out the window
 
