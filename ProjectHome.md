@@ -1,0 +1,1 @@
+Arkanoid clone made with C++ and SDL.
